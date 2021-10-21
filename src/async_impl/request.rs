@@ -408,8 +408,16 @@ impl RequestBuilder {
     /// ```
     pub fn send(self) -> impl Future<Output = Result<Response, crate::Error>> {
         match self.request {
-            Ok(req) => self.client.execute_request(req),
-            Err(err) => Pending::new_err(err),
+            Ok(req) => {
+                println!("s3::RequestBuilder::send before self.client.execute_request");
+                let res = self.client.execute_request(req);
+                println!("s3::RequestBuilder::send after self.client.execute_request");
+                res
+            },
+            Err(err) => {
+                println!("s3::RequestBuilder::send err town");
+                Pending::new_err(err)
+            }
         }
     }
 

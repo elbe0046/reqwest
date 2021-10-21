@@ -1055,7 +1055,9 @@ impl Client {
 
         *req.headers_mut() = headers.clone();
 
+        println!("s3::Client::execute_request before self.inner.hyper.request");
         let in_flight = self.inner.hyper.request(req);
+        println!("s3::Client::execute_request after self.inner.hyper.request - returning the Pending");
 
         Pending {
             inner: PendingInner::Request(PendingRequest {
@@ -1297,10 +1299,18 @@ impl Future for Pending {
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let inner = self.inner();
         match inner.get_mut() {
-            PendingInner::Request(ref mut req) => Pin::new(req).poll(cx),
-            PendingInner::Error(ref mut err) => Poll::Ready(Err(err
-                .take()
-                .expect("Pending error polled more than once"))),
+            PendingInner::Request(ref mut req) => {
+                println!("s3::Pending::poll before Pin::new(req).poll(cx)");
+                let res = Pin::new(req).poll(cx);
+                println!("s3::Pending::poll after Pin::new(req).poll(cx)");
+                res
+            },
+            PendingInner::Error(ref mut err) => {
+                println!("s3::Pending::poll error town");
+                Poll::Ready(Err(err
+                    .take()
+                    .expect("Pending error polled more than once")))
+            }
         }
     }
 }

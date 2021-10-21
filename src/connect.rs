@@ -265,6 +265,7 @@ impl Connector {
         match &self.inner {
             #[cfg(feature = "default-tls")]
             Inner::DefaultTls(_http, tls) => {
+                println!("Connector::connect_socks Inner::DefaultTls");
                 if dst.scheme() == Some(&Scheme::HTTPS) {
                     let host = dst
                         .host()
@@ -283,6 +284,7 @@ impl Connector {
             }
             #[cfg(feature = "rustls-tls")]
             Inner::RustlsTls { tls_proxy, .. } => {
+                println!("Connector::connect_socks Inner::RustlsTls");
                 if dst.scheme() == Some(&Scheme::HTTPS) {
                     use tokio_rustls::webpki::DNSNameRef;
                     use tokio_rustls::TlsConnector as RustlsConnector;
@@ -603,7 +605,10 @@ impl AsyncWrite for Conn {
         cx: &mut Context
     ) -> Poll<Result<(), io::Error>> {
         let this = self.project();
-        AsyncWrite::poll_shutdown(this.inner, cx)
+        println!("<Conn as AsyncWrite>::poll_shutdown before");
+        let res = AsyncWrite::poll_shutdown(this.inner, cx);
+        println!("<Conn as AsyncWrite>::poll_shutdown after");
+        res
     }
 
     fn poll_write_buf<B: Buf>(
@@ -774,7 +779,10 @@ mod native_tls_conn {
             cx: &mut Context
         ) -> Poll<Result<(), tokio::io::Error>> {
             let this = self.project();
-            AsyncWrite::poll_shutdown(this.inner, cx)
+            println!("<NativeTlsConn as AsyncWrite>::poll_shutdown before");
+            let res = AsyncWrite::poll_shutdown(this.inner, cx);
+            println!("<NativeTlsConn as AsyncWrite>::poll_shutdown after");
+            res
         }
 
         fn poll_write_buf<B: Buf>(
@@ -867,7 +875,10 @@ mod rustls_tls_conn {
             cx: &mut Context
         ) -> Poll<Result<(), tokio::io::Error>> {
             let this = self.project();
-            AsyncWrite::poll_shutdown(this.inner, cx)
+            println!("<RustlsTlsConn as AsyncWrite>::poll_shutdown before");
+            let res = AsyncWrite::poll_shutdown(this.inner, cx);
+            println!("<RustlsTlsConn as AsyncWrite>::poll_shutdown after");
+            res
         }
 
         fn poll_write_buf<B: Buf>(
